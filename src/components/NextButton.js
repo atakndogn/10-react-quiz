@@ -1,27 +1,15 @@
+import Button from "./Button";
+
 function NextButton({ dispatch, answer, index, numQuestions }) {
   if (answer === null) return null;
 
   if (index < numQuestions - 1) {
-    return (
-      <button
-        className="btn btn-ui"
-        onClick={() => dispatch({ type: "nextQuestion" })}
-      >
-        Next
-      </button>
-    );
+    return <Button dispatch={dispatch} type="nextQuestion" btnText="Next" />;
   }
 
   // Last question
   if (index === numQuestions - 1) {
-    return (
-      <button
-        className="btn btn-ui"
-        onClick={() => dispatch({ type: "finish" })}
-      >
-        Finish
-      </button>
-    );
+    return <Button dispatch={dispatch} type="finish" btnText="Finish" />;
   }
 }
 

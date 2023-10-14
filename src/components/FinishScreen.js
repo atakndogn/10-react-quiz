@@ -1,4 +1,4 @@
-function FinishScreen({ points, maxPossiblePoints, highScore }) {
+function FinishScreen({ points, maxPossiblePoints, highScore, dispatch }) {
   const percentPoint = (points / maxPossiblePoints) * 100;
 
   let emoji;
@@ -10,7 +10,7 @@ function FinishScreen({ points, maxPossiblePoints, highScore }) {
   return (
     <>
       <p className="result">
-        <span>{emoji}</span> You scored <strong>{points}</strong> out of{" "}
+        <span>{emoji}</span> You scored <strong>{points}</strong> out of
         {maxPossiblePoints} ({Math.ceil(percentPoint)}%)
       </p>
       <p className="highscore">(Highscore: {highScore} points)</p>
