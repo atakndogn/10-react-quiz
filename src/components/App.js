@@ -9,6 +9,10 @@ import NextButton from "./NextButton";
 import Progress from "./Progress";
 import FinishScreen from "./FinishScreen";
 import Button from "./Button";
+import Timer from "./Timer";
+import Footer from "./Footer";
+
+const SECS_PER_QUESTION = 30;
 
 const initialState = {
   questions: [],
@@ -21,6 +25,7 @@ const initialState = {
   answer: null,
   points: 0,
   highScore: 0,
+  secondsRemaining: null,
 };
 
 function reducer(state, action) {
@@ -30,7 +35,11 @@ function reducer(state, action) {
     case "dataFailed":
       return { ...state, status: "error" };
     case "start":
-      return { ...state, status: "active" };
+      return {
+        ...state,
+        status: "active",
+        secondsRemaining: state.questions.length * SECS_PER_QUESTION,
+      };
     case "newAnswer":
       const currentQuestion = state.questions[state.index];
 
@@ -46,11 +55,21 @@ function reducer(state, action) {
       };
     case "nextQuestion":
       return { ...state, answer: null, index: state.index + 1 };
-    case "finish":
+    case "finished":
       const curHighScore =
         state.points > state.highScore ? state.points : state.highScore;
 
       return { ...state, status: "finished", highScore: curHighScore };
+    case "tick":
+      const curStatus =
+        state.secondsRemaining === 0 ? "finished" : state.status;
+
+      return {
+        ...state,
+        secondsRemaining: state.secondsRemaining - 1,
+        status: curStatus,
+      };
+
     case "restart":
       return { ...initialState, status: "ready", questions: state.questions };
     default:
@@ -59,8 +78,10 @@ function reducer(state, action) {
 }
 
 export default function App() {
-  const [{ questions, status, index, answer, points, highScore }, dispatch] =
-    useReducer(reducer, initialState);
+  const [
+    { questions, status, index, answer, points, highScore, secondsRemaining },
+    dispatch,
+  ] = useReducer(reducer, initialState);
 
   const numQuestions = questions.length;
   const maxPossiblePoints = questions.reduce((acc, q) => acc + q.points, 0);
@@ -95,12 +116,15 @@ export default function App() {
               dispatch={dispatch}
               answer={answer}
             />
-            <NextButton
-              dispatch={dispatch}
-              answer={answer}
-              index={index}
-              numQuestions={numQuestions}
-            />
+            <Footer>
+              <Timer secondsRemaining={secondsRemaining} dispatch={dispatch} />
+              <NextButton
+                dispatch={dispatch}
+                answer={answer}
+                index={index}
+                numQuestions={numQuestions}
+              />
+            </Footer>
           </>
         )}
         {status === "finished" && (

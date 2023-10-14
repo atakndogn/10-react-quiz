@@ -9,7 +9,7 @@ function NextButton({ dispatch, answer, index, numQuestions }) {
 
   // Last question
   if (index === numQuestions - 1) {
-    return <Button dispatch={dispatch} type="finish" btnText="Finish" />;
+    return <Button dispatch={dispatch} type="finished" btnText="Finish" />;
   }
 }
 
