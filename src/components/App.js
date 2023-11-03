@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { useEffect } from "react";
 import Header from "./Header";
 import Main from "./Main";
 import Loader from "./Loader";
@@ -11,131 +11,32 @@ import FinishScreen from "./FinishScreen";
 import Button from "./Button";
 import Timer from "./Timer";
 import Footer from "./Footer";
-
-const SECS_PER_QUESTION = 30;
-
-const initialState = {
-  questions: [],
-
-  // "laoding", "error", "ready","active","finished"
-  status: "loading",
-
-  // current question
-  index: 0,
-  answer: null,
-  points: 0,
-  highScore: 0,
-  secondsRemaining: null,
-};
-
-function reducer(state, action) {
-  switch (action.type) {
-    case "dataReceived":
-      return { ...state, questions: action.payload, status: "ready" };
-    case "dataFailed":
-      return { ...state, status: "error" };
-    case "start":
-      return {
-        ...state,
-        status: "active",
-        secondsRemaining: state.questions.length * SECS_PER_QUESTION,
-      };
-    case "newAnswer":
-      const currentQuestion = state.questions[state.index];
-
-      const currentPoint =
-        currentQuestion.correctOption === action.payload
-          ? currentQuestion.points
-          : 0;
-
-      return {
-        ...state,
-        answer: action.payload,
-        points: state.points + currentPoint,
-      };
-    case "nextQuestion":
-      return { ...state, answer: null, index: state.index + 1 };
-    case "finished":
-      const curHighScore =
-        state.points > state.highScore ? state.points : state.highScore;
-
-      return { ...state, status: "finished", highScore: curHighScore };
-    case "tick":
-      const curStatus =
-        state.secondsRemaining === 0 ? "finished" : state.status;
-
-      return {
-        ...state,
-        secondsRemaining: state.secondsRemaining - 1,
-        status: curStatus,
-      };
-
-    case "restart":
-      return { ...initialState, status: "ready", questions: state.questions };
-    default:
-      throw new Error("Action unknown");
-  }
-}
+import { useQuiz } from "../contexts/QuizContext";
 
 export default function App() {
-  const [
-    { questions, status, index, answer, points, highScore, secondsRemaining },
-    dispatch,
-  ] = useReducer(reducer, initialState);
-
-  const numQuestions = questions.length;
-  const maxPossiblePoints = questions.reduce((acc, q) => acc + q.points, 0);
-
-  useEffect(() => {
-    fetch("http://localhost:8000/questions")
-      .then((res) => res.json())
-      .then((data) => dispatch({ type: "dataReceived", payload: data }))
-      .catch((err) => dispatch({ type: "dataFailed" }));
-  }, []);
+  const { status } = useQuiz();
 
   return (
     <div className="app">
       <Header />
       <Main>
         {status === "loading" && <Loader />}
-        {status === "ready" && (
-          <StartScreen numQuestions={numQuestions} dispatch={dispatch} />
-        )}
+        {status === "ready" && <StartScreen />}
         {status === "error" && <Error />}
         {status === "active" && (
           <>
-            <Progress
-              index={index}
-              numQuestions={numQuestions}
-              points={points}
-              maxPossiblePoints={maxPossiblePoints}
-              answer={answer}
-            />
-            <Question
-              question={questions[index]}
-              dispatch={dispatch}
-              answer={answer}
-            />
+            <Progress />
+            <Question />
             <Footer>
-              <Timer secondsRemaining={secondsRemaining} dispatch={dispatch} />
-              <NextButton
-                dispatch={dispatch}
-                answer={answer}
-                index={index}
-                numQuestions={numQuestions}
-              />
+              <Timer />
+              <NextButton />
             </Footer>
           </>
         )}
         {status === "finished" && (
           <>
-            <FinishScreen
-              points={points}
-              maxPossiblePoints={maxPossiblePoints}
-              highScore={highScore}
-              dispatch={dispatch}
-            />
-            <Button dispatch={dispatch} type="restart" btnText="Restart Quiz" />
+            <FinishScreen />
+            <Button type="restart" btnText="Restart Quiz" />
           </>
         )}
       </Main>
